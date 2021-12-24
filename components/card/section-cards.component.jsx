@@ -1,4 +1,4 @@
-import Card from "./card";
+import Card from "./card.component";
 import Link from "next/link";
 import clsx from "classnames";
 import styles from "./section-cards.module.css";
@@ -11,7 +11,7 @@ const SectionCards = (props) => {
       <div className={clsx(styles.cardWrapper, shouldWrap && styles.wrap)}>
         {videos.map((video, idx) => {
           return (
-            <Link href={`/video/${video.id}`}>
+            <Link key={idx} href={`/video/${video.id}`}>
               <a>
                 <Card
                   id={idx}
