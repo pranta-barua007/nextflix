@@ -1,5 +1,5 @@
-import Card from "./card.component";
 import Link from "next/link";
+import Card from "./card.component";
 import clsx from "classnames";
 import styles from "./section-cards.module.css";
 
