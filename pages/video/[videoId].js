@@ -1,25 +1,54 @@
 import { useRouter } from "next/router";
 import Modal from "react-modal";
 import clsx from "classnames";
+import NavBar from "../../components/navbar/navbar.component";
+
+import { getYoutubeVideoById } from "../../lib/videos";
 
 import styles from "../../styles/Video.module.css";
 
 Modal.setAppElement("#__next");
 
-const Video = () => {
-  const router = useRouter();
+// This function gets called at build time on server-side.
+// It may be called again, on a serverless function, if
+// revalidation is enabled and a new request comes in
+export async function getStaticProps(context) {
+  const videoId = context.params.videoId;
+  const videoArray = await getYoutubeVideoById(videoId);
 
-  const video = {
-      title: 'Cute dog',
-      publishTime: '1990-01-01',
-      description: 'A big red dog, Can he get any bigger?',
-      channelTitle: 'Paramount Pictures',
-      viewCount: 100000
+  return {
+    props: {
+      video: videoArray.length > 0 ? videoArray[0] : {},
+    },
+    // Next.js will attempt to re-generate the page:
+    // - When a request comes in
+    // - At most once every 10 seconds
+    revalidate: 10, // In seconds
   }
+}
+
+// This function gets called at build time on server-side.
+// It may be called again, on a serverless function, if
+// the path has not been generated.
+export async function getStaticPaths() {
+  const listOfVideos = ["mYfJxlgR2jw", "4zH5iYM4wJo", "KCPEHsAViiQ"];
+  const paths = listOfVideos.map((videoId) => ({
+    params: { videoId },
+  }));
+
+  // We'll pre-render only these paths at build time.
+  // { fallback: blocking } will server-render pages
+  // on-demand if the path doesn't exist.
+  return { paths, fallback: 'blocking' }
+}
+
+const Video = ({ video }) => {
+  const router = useRouter();
   const {title,publishTime,description,channelTitle,viewCount} = video;
 
   return (
     <div className={styles.conatainer}>
+      <NavBar />
       <Modal
         isOpen={true}
         contentLabel="Watch the video"
