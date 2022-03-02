@@ -17,45 +17,55 @@ const Login = () => {
   useEffect(() => {
     const handleRouteChangeComplete = () => {
       setIsLoading(false);
-    }
+    };
 
     router.events.on("routeChangeComplete", handleRouteChangeComplete);
     router.events.on("routeChangeError", handleRouteChangeComplete);
-  
+
     return () => {
       router.events.off("routeChangeComplete", handleRouteChangeComplete);
       router.events.off("routeChangeError", handleRouteChangeComplete);
-    }
+    };
   }, [router]);
 
   const handleOnChangeEmail = (e) => {
-    setUserMsg('');
+    setUserMsg("");
     setEmail(e.target.value.toLowerCase());
-  }
+  };
 
   const handleLoginWithEmail = async (e) => {
     e.preventDefault();
-    
-    if(email) {
-      if(email === 'prantabarua247@gmail.com') {
-        try {
-              setIsLoading(true);
-                const DIDtoken = await magic.auth.loginWithMagicLink({
-                    email: email
-                });
-                console.log({ DIDtoken });
-                if(DIDtoken) {
-                  router.push('/');
-                }
-            }catch(err) {
-              setIsLoading(false);
-              console.error('something went wrong', err);
-            }
-        }else {
-          setIsLoading(false);
-          setUserMsg("Something went wrong logging in");
+
+    if (email) {
+      try {
+        setIsLoading(true);
+        const DIDtoken = await magic.auth.loginWithMagicLink({
+          email: email,
+        });
+        console.log({ DIDtoken });
+        if (DIDtoken) {
+          const response = await fetch("api/login", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${DIDtoken}`,
+              "Content-type": "application/json",
+            },
+          });
+
+          const loggedInResponse = await response.json();
+          loggedInResponse && console.log({ loggedInResponse });
+          if(loggedInResponse.done) {
+            router.push("/");
+          }else {
+            setIsLoading(false);
+            setUserMsg("Something went wrong logging in");
+          }
         }
-    }else {
+      } catch (err) {
+        setIsLoading(false);
+        console.error("something went wrong", err);
+      }
+    } else {
       setIsLoading(false);
       setUserMsg("Enter a valid email address");
     }
@@ -66,7 +76,6 @@ const Login = () => {
       <Head>
         <title>Nextflix SignIn</title>
       </Head>
-
       <header className={styles.header}>
         <div className={styles.headerWrapper}>
           <a className={styles.logoLink} href="/">
@@ -93,8 +102,12 @@ const Login = () => {
               onChange={handleOnChangeEmail}
             />
             <p className={styles.userMsg}>{userMsg}</p>
-            <button disabled={isLoading} type="submit" className={styles.loginBtn}>
-              {isLoading ? 'Loading...' : 'Sign In'}
+            <button
+              disabled={isLoading}
+              type="submit"
+              className={styles.loginBtn}
+            >
+              {isLoading ? "Loading..." : "Sign In"}
             </button>
           </form>
         </div>
