@@ -2,7 +2,7 @@ import Head from "next/head";
 import NavBar from "../../components/navbar/navbar.component";
 
 import SectionCards from "../../components/card/section-cards.component";
-import useRedirectUser from "../../utils/useRedirectUser.util";
+import useRedirectUser from "../../utils/useRedirectUser";
 import { getMyList } from "../../lib/videos";
 import styles from "../../styles/MyList.module.css";
 

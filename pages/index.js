@@ -6,7 +6,7 @@ import Banner from "../components/banner/banner.component";
 import SectionCards from "../components/card/section-cards.component";
 
 import { getVideos, getPopularVideos, getWatchItAgainVideos } from "../lib/videos";
-import useRedirectUser from "../utils/useRedirectUser.util";
+import useRedirectUser from "../utils/useRedirectUser";
 
 export async function getServerSideProps(context) {
   const { userId, token } = await useRedirectUser(context);
