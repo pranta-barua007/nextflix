@@ -15,11 +15,12 @@ const NavBar = () => {
   useEffect(() => {
     const getUserInfoFromMagic =  async () => {
       try {
-        const { email, publicAddress } = await magic.user.getMetadata();
+        const { email } = await magic.user.getMetadata();
         const didToken = await magic.user.getIdToken();
         
         if(email) {
           setUsername(email);
+          setDidToken(didToken);
         }
       }catch(err) {
         console.error(err);
@@ -101,9 +102,9 @@ const NavBar = () => {
             {showDropdown && (
               <div className={styles.navDropdown}>
                 <div>
-                  <a className={styles.linkName} onClick={handleSignout}>
+                  <p className={styles.linkName} onClick={handleSignout}>
                     Sign out
-                  </a>
+                  </p>
                   <div className={styles.lineWrapper}></div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
 
@@ -42,7 +43,7 @@ const Login = () => {
         const DIDtoken = await magic.auth.loginWithMagicLink({
           email: email,
         });
-       
+
         if (DIDtoken) {
           const response = await fetch("api/login", {
             method: "POST",
@@ -53,10 +54,10 @@ const Login = () => {
           });
 
           const loggedInResponse = await response.json();
-          
-          if(loggedInResponse.done) {
+
+          if (loggedInResponse.done) {
             router.push("/");
-          }else {
+          } else {
             setIsLoading(false);
             setUserMsg("Something went wrong logging in");
           }
@@ -78,16 +79,18 @@ const Login = () => {
       </Head>
       <header className={styles.header}>
         <div className={styles.headerWrapper}>
-          <a className={styles.logoLink} href="/">
-            <div className={styles.logoWrapper}>
-              <Image
-                src="/static/netflix.svg"
-                alt="Netflix logo"
-                width="128px"
-                height="34px"
-              />
-            </div>
-          </a>
+          <Link href="/">
+            <a className={styles.logoLink}>
+              <div className={styles.logoWrapper}>
+                <Image
+                  src="/static/netflix.svg"
+                  alt="Netflix logo"
+                  width="128px"
+                  height="34px"
+                />
+              </div>
+            </a>
+          </Link>
         </div>
       </header>
       <main className={styles.main}>
