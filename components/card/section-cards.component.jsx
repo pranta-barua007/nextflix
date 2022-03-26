@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Card from "./card.component";
 import clsx from "classnames";
-import { useHorizontalScroll } from "../../hooks/useHorizontalScroll";
+import useHorizontalScroll from "../../hooks/useHorizontalScroll";
 import styles from "./section-cards.module.css";
 
 const SectionCards = (props) => {
