@@ -99,6 +99,7 @@ const Login = () => {
           <form onSubmit={handleLoginWithEmail}>
             <input
               type="email"
+              name="email"
               placeholder="Email address"
               className={styles.emailInput}
               required={true}
