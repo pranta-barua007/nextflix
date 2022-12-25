@@ -1,6 +1,6 @@
 import { magicAdmin } from "../../lib/magic";
 import jwt from "jsonwebtoken";
-import { isNewUser, createNewUser } from "../../lib/db/hasura";
+import { createNewUser, isNewUser } from "../../lib/db/hasura";
 import { setTokenCookie } from "../../lib/cookies";
 
 export default async function login(req, res) {
@@ -14,7 +14,7 @@ export default async function login(req, res) {
       const token = jwt.sign(
         {
           ...metadata,
-          iat: Math.floor(Date.now() / 1000 - 60 * 60),
+          iat: Math.floor(Date.now() / 1000),
           exp: Math.floor(Date.now() / 1000 + 7 * 24 * 60 * 60),
           "https://hasura.io/jwt/claims": {
             "x-hasura-allowed-roles": ["user", "admin"],
@@ -24,7 +24,7 @@ export default async function login(req, res) {
         },
         process.env.JWT_SECRET
       );
-    
+
       const isNewUserQuery = await isNewUser(token, metadata.issuer);
       isNewUserQuery && (await createNewUser(token, metadata));
       setTokenCookie(token, res);

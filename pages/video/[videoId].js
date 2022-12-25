@@ -1,20 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+
 import { useRouter } from "next/router";
 import Modal from "react-modal";
+import styles from "../../styles/Video.module.css";
+
+import NavBar from "../../components/nav/navbar";
 import clsx from "classnames";
-import NavBar from "../../components/navbar/navbar.component";
-import Like from "../../components/icon/like-icon.component";
-import Dislike from "../../components/icon/dislike-icon.component";
 
 import { getYoutubeVideoById } from "../../lib/videos";
 
-import styles from "../../styles/Video.module.css";
+import Like from "../../components/icons/like-icon";
+import DisLike from "../../components/icons/dislike-icon";
 
 Modal.setAppElement("#__next");
 
-// This function gets called at build time on server-side.
-// It may be called again, on a serverless function, if
-// revalidation is enabled and a new request comes in
 export async function getStaticProps(context) {
   const videoId = context.params.videoId;
   const videoArray = await getYoutubeVideoById(videoId);
@@ -23,91 +22,86 @@ export async function getStaticProps(context) {
     props: {
       video: videoArray.length > 0 ? videoArray[0] : {},
     },
-    // Next.js will attempt to re-generate the page:
-    // - When a request comes in
-    // - At most once every 10 seconds
     revalidate: 10, // In seconds
   };
 }
 
-// This function gets called at build time on server-side.
-// It may be called again, on a serverless function, if
-// the path has not been generated.
 export async function getStaticPaths() {
   const listOfVideos = ["mYfJxlgR2jw", "4zH5iYM4wJo", "KCPEHsAViiQ"];
   const paths = listOfVideos.map((videoId) => ({
     params: { videoId },
   }));
 
-  // We'll pre-render only these paths at build time.
-  // { fallback: blocking } will server-render pages
-  // on-demand if the path doesn't exist.
   return { paths, fallback: "blocking" };
 }
 
 const Video = ({ video }) => {
   const router = useRouter();
   const videoId = router.query.videoId;
+
   const [toggleLike, setToggleLike] = useState(false);
-  const [toggleDislike, setToggleDislike] = useState(false);
-  const { title, publishTime, description, channelTitle, viewCount } = video;
+  const [toggleDisLike, setToggleDisLike] = useState(false);
+
+  const {
+    title,
+    publishTime,
+    description,
+    channelTitle,
+    statistics: { viewCount } = { viewCount: 0 },
+  } = video;
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const handleLikeDislikeService = async () => {
       const response = await fetch(`/api/stats?videoId=${videoId}`, {
-        method: 'GET',
-        headers: {
-          "Content-Type": "application/json"
-        },
+        method: "GET",
       });
       const data = await response.json();
-     
-      if(data.length > 0) {
+
+      if (data.length > 0) {
         const favourited = data[0].favourited;
-        if(favourited === 1) {
-          setToggleLike(true)
-        } else if(favourited === 0) {
-          setToggleDislike(true)
+        if (favourited === 1) {
+          setToggleLike(true);
+        } else if (favourited === 0) {
+          setToggleDisLike(true);
         }
       }
-    } 
-
-    fetchStats();
+    };
+    handleLikeDislikeService();
   }, [videoId]);
 
   const runRatingService = async (favourited) => {
-    return await fetch('/api/stats', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json"
-      },
+    return await fetch("/api/stats", {
+      method: "POST",
       body: JSON.stringify({
         videoId,
-        favourited
-      })
+        favourited,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
-  }
+  };
 
-  const handleToogleLike = async () => {
+  const handleToggleDislike = async () => {
+    setToggleDisLike(!toggleDisLike);
+    setToggleLike(toggleDisLike);
+
+    const val = !toggleDisLike;
+    const favourited = val ? 0 : 1;
+    const response = await runRatingService(favourited);
+  };
+
+  const handleToggleLike = async () => {
     const val = !toggleLike;
     setToggleLike(val);
-    setToggleDislike(toggleLike);
+    setToggleDisLike(toggleLike);
 
     const favourited = val ? 1 : 0;
-    await runRatingService(favourited);
-  }
-
-  const handleToogleDislike = async () => {
-    setToggleDislike(!toggleDislike);
-    setToggleLike(toggleDislike);
-
-    const val = !toggleDislike;
-    const favourited = val ? 0 : 1;
-    await runRatingService(favourited);
-  }
+    const response = await runRatingService(favourited);
+  };
 
   return (
-    <div className={styles.conatainer}>
+    <div className={styles.container}>
       <NavBar />
       <Modal
         isOpen={true}
@@ -117,25 +111,26 @@ const Video = ({ video }) => {
         overlayClassName={styles.overlay}
       >
         <iframe
-          id="player"
+          id="ytplayer"
           className={styles.videoPlayer}
           type="text/html"
           width="100%"
-          height="390"
+          height="360"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=0&origin=http://example.com&controls=0&rel=1`}
           frameBorder="0"
         ></iframe>
+
         <div className={styles.likeDislikeBtnWrapper}>
           <div className={styles.likeBtnWrapper}>
-            <button onClick={handleToogleLike}>
+            <button onClick={handleToggleLike}>
               <div className={styles.btnWrapper}>
-                <Like selected={toggleLike}/>
+                <Like selected={toggleLike} />
               </div>
             </button>
           </div>
-          <button onClick={handleToogleDislike}>
+          <button onClick={handleToggleDislike}>
             <div className={styles.btnWrapper}>
-              <Dislike selected={toggleDislike} />
+              <DisLike selected={toggleDisLike} />
             </div>
           </button>
         </div>

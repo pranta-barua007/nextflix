@@ -1,30 +1,41 @@
-import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { magic } from "../lib/magic-client";
+import "../styles/globals.css";
 
-import Loading from '../components/loading/loading.component';
-import '../styles/globals.css'
+import Loading from "../components/loading/loading";
 
 function MyApp({ Component, pageProps }) {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const handleRouteChangeComplete = () => {
+    const handleLoggedIn = async () => {
+      const isLoggedIn = await magic.user.isLoggedIn();
+      if (isLoggedIn) {
+        // route to /
+        router.push("/");
+      } else {
+        // route to /login
+        router.push("/login");
+      }
+    };
+    handleLoggedIn();
+  }, []);
+
+  useEffect(() => {
+    const handleComplete = () => {
       setIsLoading(false);
-    }
+    };
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
 
-    router.events.on("routeChangeComplete", handleRouteChangeComplete);
-    router.events.on("routeChangeError", handleRouteChangeComplete);
-  
     return () => {
-      router.events.off("routeChangeComplete", handleRouteChangeComplete);
-      router.events.off("routeChangeError", handleRouteChangeComplete);
-    }
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
+    };
   }, [router]);
-
-  return (
-    isLoading ? <Loading /> : <Component {...pageProps} />
-  )
+  return isLoading ? <Loading /> : <Component {...pageProps} />;
 }
 
-export default MyApp
+export default MyApp;

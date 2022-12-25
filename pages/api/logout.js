@@ -1,6 +1,6 @@
 import { magicAdmin } from "../../lib/magic";
-import { verifyToken } from "../../lib/utils";
 import { removeTokenCookie } from "../../lib/cookies";
+import { verifyToken } from "../../lib/utils";
 
 export default async function logout(req, res) {
   try {
@@ -13,7 +13,6 @@ export default async function logout(req, res) {
     try {
       await magicAdmin.users.logoutByIssuer(userId);
     } catch (error) {
-      console.log("User's session with Magic already expired");
       console.error("Error occurred while logging out magic user", error);
     }
     //redirects user to login page
@@ -21,6 +20,6 @@ export default async function logout(req, res) {
     res.end();
   } catch (error) {
     console.error({ error });
-    return res.status(401).json({ message: "User is not logged in" });
+    res.status(401).json({ message: "User is not logged in" });
   }
 }

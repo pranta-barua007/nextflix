@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+
 import { useRouter } from "next/router";
-import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
+import Link from "next/link";
 
 import { magic } from "../lib/magic-client";
 
@@ -16,45 +17,45 @@ const Login = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const handleRouteChangeComplete = () => {
+    const handleComplete = () => {
       setIsLoading(false);
     };
-
-    router.events.on("routeChangeComplete", handleRouteChangeComplete);
-    router.events.on("routeChangeError", handleRouteChangeComplete);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
 
     return () => {
-      router.events.off("routeChangeComplete", handleRouteChangeComplete);
-      router.events.off("routeChangeError", handleRouteChangeComplete);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
     };
   }, [router]);
 
   const handleOnChangeEmail = (e) => {
     setUserMsg("");
-    setEmail(e.target.value.toLowerCase());
+    const email = e.target.value;
+    setEmail(email);
   };
 
   const handleLoginWithEmail = async (e) => {
     e.preventDefault();
 
     if (email) {
+      // log in a user by their email
       try {
         setIsLoading(true);
-        const DIDtoken = await magic.auth.loginWithMagicLink({
-          email: email,
-        });
 
-        if (DIDtoken) {
-          const response = await fetch("api/login", {
+        const didToken = await magic.auth.loginWithMagicLink({
+          email,
+        });
+        if (didToken) {
+          const response = await fetch("/api/login", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${DIDtoken}`,
-              "Content-type": "application/json",
+              Authorization: `Bearer ${didToken}`,
+              "Content-Type": "application/json",
             },
           });
 
           const loggedInResponse = await response.json();
-
           if (loggedInResponse.done) {
             router.push("/");
           } else {
@@ -62,25 +63,27 @@ const Login = () => {
             setUserMsg("Something went wrong logging in");
           }
         }
-      } catch (err) {
+      } catch (error) {
+        // Handle errors if required!
+        console.error("Something went wrong logging in", error);
         setIsLoading(false);
-        console.error("something went wrong", err);
       }
     } else {
+      // show user message
       setIsLoading(false);
       setUserMsg("Enter a valid email address");
     }
   };
-
   return (
     <div className={styles.container}>
       <Head>
-        <title>Nextflix SignIn</title>
+        <title>Netflix SignIn</title>
       </Head>
+
       <header className={styles.header}>
         <div className={styles.headerWrapper}>
-          <Link href="/">
-            <a className={styles.logoLink}>
+          <Link className={styles.logoLink} href="/">
+            <a>
               <div className={styles.logoWrapper}>
                 <Image
                   src="/static/netflix.svg"
@@ -93,27 +96,22 @@ const Login = () => {
           </Link>
         </div>
       </header>
+
       <main className={styles.main}>
         <div className={styles.mainWrapper}>
           <h1 className={styles.signinHeader}>Sign In</h1>
-          <form onSubmit={handleLoginWithEmail}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email address"
-              className={styles.emailInput}
-              required={true}
-              onChange={handleOnChangeEmail}
-            />
-            <p className={styles.userMsg}>{userMsg}</p>
-            <button
-              disabled={isLoading}
-              type="submit"
-              className={styles.loginBtn}
-            >
-              {isLoading ? "Loading..." : "Sign In"}
-            </button>
-          </form>
+
+          <input
+            type="text"
+            placeholder="Email address"
+            className={styles.emailInput}
+            onChange={handleOnChangeEmail}
+          />
+
+          <p className={styles.userMsg}>{userMsg}</p>
+          <button onClick={handleLoginWithEmail} className={styles.loginBtn}>
+            {isLoading ? "Loading..." : "Sign In"}
+          </button>
         </div>
       </main>
     </div>

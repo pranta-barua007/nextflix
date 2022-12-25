@@ -1,32 +1,60 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
-import NavBar from "../components/navbar/navbar.component";
-import Banner from "../components/banner/banner.component";
-import SectionCards from "../components/card/section-cards.component";
+import Banner from "../components/banner/banner";
+import NavBar from "../components/nav/navbar";
 
-import { getVideos, getPopularVideos, getWatchItAgainVideos } from "../lib/videos";
-import redirectUser from "../utils/redirectUser";
+import SectionCards from "../components/card/section-cards";
+
+import {
+  getVideos,
+  getPopularVideos,
+  getWatchItAgainVideos,
+} from "../lib/videos";
+import { redirectUser } from "../utils/redirectUser";
 
 export async function getServerSideProps(context) {
   const { userId, token } = await redirectUser(context);
 
+  if (!userId) {
+    return {
+      props: {},
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
   const watchItAgainVideos = await getWatchItAgainVideos(userId, token);
+
   const disneyVideos = await getVideos("disney trailer");
-  const productivityVideos = await getVideos("productivity");
-  const travelVideos = await getVideos("travel");
+  const productivityVideos = await getVideos("Productivity");
 
-  const popularVideos = await getPopularVideos("US");
+  const travelVideos = await getVideos("indie music");
 
-  return {props: { disneyVideos, productivityVideos, travelVideos, popularVideos, watchItAgainVideos }}
+  const popularVideos = await getPopularVideos();
+  return {
+    props: {
+      disneyVideos,
+      travelVideos,
+      productivityVideos,
+      popularVideos,
+      watchItAgainVideos,
+    },
+  };
 }
 
-export default function Home({ disneyVideos, travelVideos, productivityVideos, popularVideos, watchItAgainVideos = [] }) {
+export default function Home({
+  disneyVideos,
+  travelVideos,
+  productivityVideos,
+  popularVideos,
+  watchItAgainVideos,
+}) {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Nextflix</title>
-        <meta name="description" content="The Next Gen Netflix ⚡ built with NextJs" />
+        <title>Netflix</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -38,12 +66,21 @@ export default function Home({ disneyVideos, travelVideos, productivityVideos, p
           subTitle="a very cute dog"
           imgUrl="/static/clifford.webp"
         />
+
         <div className={styles.sectionWrapper}>
-          <SectionCards title={"Disney"} videos={disneyVideos} size={"large"} />
-          <SectionCards title={"Watch it again"} videos={watchItAgainVideos} size={"small"} />
-          <SectionCards title={"Travel"} videos={travelVideos} size={"small"} />
-          <SectionCards title={"Productivity"} videos={productivityVideos} size={"medium"} />
-          <SectionCards title={"Popular"} videos={popularVideos} size={"small"} />
+          <SectionCards title="Disney" videos={disneyVideos} size="large" />
+          <SectionCards
+            title="Watch it again"
+            videos={watchItAgainVideos}
+            size="small"
+          />
+          <SectionCards title="Travel" videos={travelVideos} size="small" />
+          <SectionCards
+            title="Productivity"
+            videos={productivityVideos}
+            size="medium"
+          />
+          <SectionCards title="Popular" videos={popularVideos} size="small" />
         </div>
       </div>
     </div>

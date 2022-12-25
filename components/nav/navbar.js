@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import styles from "./navbar.module.css";
+
 import { useRouter } from "next/router";
+import Link from "next/link";
 import Image from "next/image";
 
 import { magic } from "../../lib/magic-client";
-
-import styles from "./navbar.module.css";
-import Link from "next/link";
 
 const NavBar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -14,21 +14,19 @@ const NavBar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const getUserInfoFromMagic =  async () => {
+    const applyUsernameInNav = async () => {
       try {
-        const { email } = await magic.user.getMetadata();
+        const { email, issuer } = await magic.user.getMetadata();
         const didToken = await magic.user.getIdToken();
-        
-        if(email) {
+        if (email) {
           setUsername(email);
           setDidToken(didToken);
         }
-      }catch(err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Error retrieving email", error);
       }
     };
-
-    getUserInfoFromMagic();
+    applyUsernameInNav();
   }, []);
 
   const handleOnClickHome = (e) => {
@@ -68,17 +66,17 @@ const NavBar = () => {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        <Link href="/">
-        <a className={styles.logoLink}>
-          <div className={styles.logoWrapper}>
-            <Image
-              src="/static/netflix.svg"
-              alt="Netflix logo"
-              width="128px"
-              height="34px"
-            />
-          </div>
-        </a>
+        <Link className={styles.logoLink} href="/">
+          <a>
+            <div className={styles.logoWrapper}>
+              <Image
+                src="/static/netflix.svg"
+                alt="Netflix logo"
+                width="128px"
+                height="34px"
+              />
+            </div>
+          </a>
         </Link>
 
         <ul className={styles.navItems}>
@@ -92,7 +90,9 @@ const NavBar = () => {
         <nav className={styles.navContainer}>
           <div>
             <button className={styles.usernameBtn} onClick={handleShowDropdown}>
-              <p className={styles.username}>{username}</p>
+              <p className={styles.username}>
+                {username.substring(0, username.indexOf("@"))}
+              </p>
               {/** Expand more icon */}
               <Image
                 src={"/static/expand_more.svg"}
@@ -104,10 +104,19 @@ const NavBar = () => {
 
             {showDropdown && (
               <div className={styles.navDropdown}>
-                <div>
-                  <p className={styles.linkName} onClick={handleSignout}>
+                <div >
+                  <div className={styles.navDropdownItems}>
+                    <a className={styles.linkName} onClick={handleOnClickHome}>
+                      Home
+                    </a>
+                    <a className={styles.linkName} onClick={handleOnClickMyList}>
+                      My List
+                    </a>
+                  </div>
+                  <a className={styles.linkName} onClick={handleSignout}>
                     Sign out
-                  </p>
+                  </a>
+
                   <div className={styles.lineWrapper}></div>
                 </div>
               </div>
